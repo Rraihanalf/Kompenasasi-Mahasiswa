@@ -15,7 +15,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [LoginController::class, 'index']);
-Route::post('/', [LoginController::class, 'login']);
-
-Route::get('/admin',[AdminController::class, 'index']);
+Route::middleware(['guest'])->group(function (){
+    Route::get('/', [LoginController::class, 'index']);
+    Route::post('/', [LoginController::class, 'login']);
+    });
+    Route::get('/home',function(){
+        return redirect('/admin');
+    });
+    
+    Route::get('/admin',[AdminController::class, 'index']);
+    Route::get('/admin',[AdminController::class, 'admin']);
+    Route::get('/pengawas',[AdminController::class, 'pengawas']);
+    Route::get('/mahasiswa',[AdminController::class, 'mahasiswa']);
+    Route::get('/logout',[LoginController::class,'logout']);

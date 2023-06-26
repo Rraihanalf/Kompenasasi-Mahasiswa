@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 class LoginController extends Controller
 {
 
+    
     function index()
     {
         return view('login');
@@ -28,9 +29,20 @@ class LoginController extends Controller
         ];
 
         if(Auth::attempt($infologin)){
-            echo "sukses";exit();
-        }else{
+            if(Auth::user()->role=='admin'){
+                return redirect('admin');
+            }elseif(Auth::user()->role=='pengawas'){
+                return redirect('pengawas');
+            }elseif(Auth::user()->role=='mahasiswa'){
+                return redirect('siswa');
+        }
+    }else{
             return redirect('')->withErrors('Username dan password yang dimasukkan tidak sesuai')->withInput();
         }
+    }
+
+    function logout(){
+        Auth::logout();
+        return redirect('');
     }
 }
