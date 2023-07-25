@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin;
 use App\Http\Controllers\LoginController;
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Mahasiswa;
+use App\Http\Controllers\Pengawas;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,16 +17,48 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['guest'])->group(function (){
-    Route::get('/', [LoginController::class, 'index']);
-    Route::post('/', [LoginController::class, 'login']);
+// Route::get('/', function () {
+//     return view('welcome');
+// });
+
+Route::get('/', [LoginController::class, 'index'])->name('login');
+
+Route::controller(LoginController::class)->group(function(){
+    Route::get('/', 'index')->name('login');
+    Route::post('login/proses', 'proses');
+    Route::get('/logout', 'logout');
+});
+
+Route::group(['middleware' => ['auth']], function(){
+    Route::group(['middleware' => ['cekUserLogin:1']], function(){
+        // Route::resource('admin', Admin::class);
+        Route::controller(Admin::class)->group(function(){
+            Route::get('admin', 'index')->name('admin');
+            Route::get('showsiswa', 'showsiswa');
+            Route::get('/admin/pelaksanaan', 'pelaksanaan');
+            Route::get('daftar_user', 'showuser');
+            Route::get('datakompen', 'datakompen');
+            Route::get('showsiswa/detail/{nim}', 'detail');
+            Route::post('showsiswa/create', 'store_pelaksanaan');
+            Route::put('validasi/admin/{id_pelaksanaan}', 'validasi_admin');
+        });
     });
-    Route::get('/home',function(){
-        return redirect('/admin');
+
+    Route::group(['middleware' => ['cekUserLogin:2']], function(){
+        // Route::resource('/pengawas', Pengawas::class);
+        Route::controller(Pengawas::class)->group(function(){
+            Route::get('/pengawas', 'index')->name('pengawas');
+            Route::get('/pengawas/pelaksanaan', 'dft_pelaksanaan');
+            Route::get('/pengawas/pelaksanaan/detail/{id_pelaksanaan}', 'detail');
+            Route::put('/validasi/pengawas/{id_pelaksanaan}', 'validasi_pengawas');
+        });
     });
-    
-    Route::get('/admin',[AdminController::class, 'index']);
-    Route::get('/admin',[AdminController::class, 'admin']);
-    Route::get('/pengawas',[AdminController::class, 'pengawas']);
-    Route::get('/mahasiswa',[AdminController::class, 'mahasiswa']);
-    Route::get('/logout',[LoginController::class,'logout']);
+
+    Route::group(['middleware' => ['cekUserLogin:3']], function(){
+        // Route::resource('mahasiswa', Mahasiswa::class);
+        Route::controller(Mahasiswa::class)->group(function(){
+            Route::get('/mahasiswa', 'index')->name('pengawas');
+            Route::get('/mahasiswa/pelaksanaan', 'dft_pelaksanaan');
+        });
+    });
+});

@@ -7,42 +7,57 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
+    public function index(){
+        if($user = Auth::user()){
+            if($user->level == '1'){
+                return redirect()->intended('admin');
+            }elseif($user->level == '2'){
+                return redirect()->intended('pengawas');
+            }elseif($user->level == '3'){
+                return redirect()->intended('mahasiswa');
+            }
+        }
 
-    
-    function index()
-    {
         return view('login');
     }
-    function login(Request $request)
-    {
+
+    public function proses(Request $request){
         $request->validate([
-            'username'=>'required',
-            'password'=>'required'
-        ],[
-            'username.required'=>'Username wajib diisi',
-            'password.required'=>'password wajib diisi',
+            'username' => 'required',
+            'password' => 'required',
         ]);
 
-        $infologin = [
-            'username'=>$request->username,
-            'password'=>$request->password,
-        ];
+        $credentials = $request->only('username', 'password');
 
-        if(Auth::attempt($infologin)){
-            if(Auth::user()->role=='admin'){
-                return redirect('admin');
-            }elseif(Auth::user()->role=='pengawas'){
-                return redirect('pengawas');
-            }elseif(Auth::user()->role=='mahasiswa'){
-                return redirect('siswa');
+        if(Auth::attempt($credentials)){
+            $request->session()->regenerate();
+
+            $user = Auth::user();
+            if($user->level == '1'){
+                return redirect()->intended('admin');
+            }elseif($user->level == '2'){
+                return redirect()->intended('pengawas');
+            }elseif($user->level == '3'){
+                return redirect()->intended('mahasiswa');
+            }
+
+            return redirect()->intended('/');
         }
-    }else{
-            return redirect('')->withErrors('Username dan password yang dimasukkan tidak sesuai')->withInput();
-        }
+
+        return back()->withErrors([
+            'username' => 'Maaf Username atau Password Anda Salah'
+        ])->onlyInput('username');
+
     }
 
-    function logout(){
+    public function logout(Request $request)
+    {
         Auth::logout();
-        return redirect('');
+    
+        $request->session()->invalidate();
+    
+        $request->session()->regenerateToken();
+    
+        return redirect('/');
     }
 }
